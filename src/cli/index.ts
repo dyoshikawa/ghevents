@@ -15,13 +15,13 @@ program
   .name("ghevents")
   .description("CLI tool to fetch GitHub events and export to XML")
   .version("0.1.0")
-  .option("--github-token <token>", "GitHub access token")
-  .option("--output <file>", "Output file name", "./ghevents.xml")
-  .option("--since <date>", "Start date in ISO8601 format")
-  .option("--until <date>", "End date in ISO8601 format")
-  .option("--visibility <type>", "Repository visibility: public, private, all", "public")
-  .option("--max-length <number>", "Maximum XML file length", "500000")
-  .option("--order <order>", "Event order: asc, desc", "asc")
+  .option("-t, --github-token <token>", "GitHub access token")
+  .option("-o, --output <file>", "Output file name", "./ghevents.xml")
+  .option("-s, --since <date>", "Start date in ISO8601 format")
+  .option("-u, --until <date>", "End date in ISO8601 format")
+  .option("-v, --visibility <type>", "Repository visibility: public, private, all", "public")
+  .option("-m, --max-length <number>", "Maximum XML file length", "500000")
+  .option("-r, --order <order>", "Event order: asc, desc", "asc")
   .action(async (options: CliOptions) => {
     try {
       const parsedOptions = await parseCliOptions(options);
