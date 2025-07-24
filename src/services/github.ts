@@ -2,7 +2,7 @@ import { graphql } from "@octokit/graphql";
 import type { ProgressDisplay } from "../cli/ui/progress.js";
 import type { GitHubEventUnion, ParsedCliOptions } from "../types/index.js";
 
-interface User {
+interface GitHubUser {
   login: string;
   url: string;
 }
@@ -19,9 +19,11 @@ interface Repository {
   visibility: string;
 }
 
-interface Author {
-  login: string;
+interface BaseNode {
+  body: string;
   url: string;
+  createdAt: string;
+  author: GitHubUser;
 }
 
 interface GraphQLSearchResponse<T> {
@@ -43,16 +45,11 @@ interface IssueNode {
   createdAt: string;
   labels: { nodes: Label[] };
   repository: Repository;
-  author: Author;
+  author: GitHubUser;
   comments: { nodes: CommentNode[] };
 }
 
-interface CommentNode {
-  body: string;
-  url: string;
-  createdAt: string;
-  author: Author;
-}
+type CommentNode = BaseNode;
 
 interface PullRequestNode {
   number: number;
@@ -67,16 +64,12 @@ interface PullRequestNode {
   additions: number;
   deletions: number;
   repository: Repository;
-  author: Author;
+  author: GitHubUser;
   reviews: { nodes: ReviewNode[] };
 }
 
-interface ReviewNode {
+interface ReviewNode extends BaseNode {
   state: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED";
-  body: string;
-  url: string;
-  createdAt: string;
-  author: Author;
 }
 
 interface CommitNode {
@@ -88,7 +81,7 @@ interface CommitNode {
   changedFiles: number;
   committedDate: string;
   repository: Repository;
-  author: { user?: Author };
+  author: { user?: GitHubUser };
 }
 
 export class GitHubService {
@@ -141,7 +134,7 @@ export class GitHubService {
     return events;
   }
 
-  private async fetchUser(): Promise<{ login: string; url: string }> {
+  private async fetchUser(): Promise<GitHubUser> {
     const query = `
       query {
         viewer {
@@ -151,7 +144,7 @@ export class GitHubService {
       }
     `;
 
-    const response: { viewer: User } = await this.graphqlWithAuth(query);
+    const response: { viewer: GitHubUser } = await this.graphqlWithAuth(query);
     return response.viewer;
   }
 
