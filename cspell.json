@@ -12,6 +12,7 @@
         "aiexclude",
         "aiignore",
         "apdisk",
+        "apos",
         "argparse",
         "autoapprove",
         "autoattached",
@@ -38,6 +39,7 @@
         "cursorrules",
         "dbaeumer",
         "depd",
+        "discusser",
         "dnsutils",
         "donotpresent",
         "dotenv",
@@ -63,6 +65,7 @@
         "fullwidth",
         "gemincli",
         "geminicli",
+        "ghactivities",
         "ghevents",
         "gibo",
         "GITSTATUS",
@@ -118,7 +121,6 @@
         "POWERLEVEL",
         "powerline",
         "procps",
-        "ghevents",
         "reviewprompt",
         "rfdc",
         "riscv",
@@ -161,8 +163,6 @@
         "whatwg",
         "wrappy",
         "wscript",
-        "XVCJ",
-        "discusser",
-        "apos"
+        "XVCJ"
     ]
 }
