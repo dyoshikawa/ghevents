@@ -18,7 +18,7 @@ xmlファイルで出力する。
 
 ### コマンド
 
-#### ghevents
+#### npx ghevents
 
 デフォルトでは、Publicリポジトリにおける直近2週間のイベントを取得し、XMLファイル `./ghevents.xml` を出力する。
 

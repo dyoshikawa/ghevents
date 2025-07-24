@@ -24,7 +24,6 @@
 	"author": "dyoshikawa",
 	"type": "module",
 	"main": "dist/index.js",
-	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
 	"bin": {
 		"ghevents": "dist/index.js"
@@ -35,7 +34,7 @@
 	"scripts": {
 		"bcheck": "biome check src/",
 		"bcheck:fix": "biome check --write src/",
-		"build": "tsup src/cli/index.ts --format cjs,esm --dts --clean",
+		"build": "tsup",
 		"check": "pnpm run bcheck && pnpm run oxlint && pnpm run eslint && pnpm run typecheck",
 		"cspell": "cspell \"**/*\"",
 		"dev": "tsx src/cli/index.ts",
