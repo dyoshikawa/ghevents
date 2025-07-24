@@ -4,7 +4,7 @@ export interface CliOptions {
   since?: string;
   until?: string;
   visibility?: "public" | "private" | "all";
-  maxLength?: number;
+  maxLength?: number | string;
   order?: "asc" | "desc";
 }
 

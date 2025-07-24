@@ -11,9 +11,9 @@ export default defineConfig({
       exclude: [
         "src/**/*.test.ts", 
         "src/cli/index.ts", 
-        "src/lib/types.ts",
-        "src/components/**/*.tsx",
-        "src/cli/commands/**/*.ts"
+        "src/types/**/*.ts",
+        "src/**/index.ts",
+        "src/services/github.ts"
       ],
       thresholds: {
         statements: 80,
