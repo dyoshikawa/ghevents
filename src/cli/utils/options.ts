@@ -10,9 +10,9 @@ export async function parseCliOptions(options: CliOptions): Promise<ParsedCliOpt
     output: options.output ?? "./ghevents.xml",
     since: options.since ? new Date(options.since) : twoWeeksAgo,
     until: options.until ? new Date(options.until) : now,
-    visibility: (options.visibility as "public" | "private" | "all") ?? "public",
+    visibility: options.visibility ?? "public",
     maxLength: options.maxLength ? parseInt(options.maxLength.toString(), 10) : 500000,
-    order: (options.order as "asc" | "desc") ?? "asc",
+    order: options.order ?? "asc",
   };
 }
 

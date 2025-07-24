@@ -2,6 +2,95 @@ import { graphql } from "@octokit/graphql";
 import type { ProgressDisplay } from "../cli/ui/progress.js";
 import type { GitHubEventUnion, ParsedCliOptions } from "../types/index.js";
 
+interface User {
+  login: string;
+  url: string;
+}
+
+interface Label {
+  name: string;
+  color: string;
+}
+
+interface Repository {
+  name: string;
+  owner: { login: string };
+  url: string;
+  visibility: string;
+}
+
+interface Author {
+  login: string;
+  url: string;
+}
+
+interface GraphQLSearchResponse<T> {
+  search: {
+    pageInfo: {
+      hasNextPage: boolean;
+      endCursor: string;
+    };
+    nodes: T[];
+  };
+}
+
+interface IssueNode {
+  number: number;
+  title: string;
+  body: string;
+  url: string;
+  state: "OPEN" | "CLOSED";
+  createdAt: string;
+  labels: { nodes: Label[] };
+  repository: Repository;
+  author: Author;
+  comments: { nodes: CommentNode[] };
+}
+
+interface CommentNode {
+  body: string;
+  url: string;
+  createdAt: string;
+  author: Author;
+}
+
+interface PullRequestNode {
+  number: number;
+  title: string;
+  body: string;
+  url: string;
+  state: "OPEN" | "CLOSED" | "MERGED";
+  createdAt: string;
+  baseRefName: string;
+  headRefName: string;
+  changedFiles: number;
+  additions: number;
+  deletions: number;
+  repository: Repository;
+  author: Author;
+  reviews: { nodes: ReviewNode[] };
+}
+
+interface ReviewNode {
+  state: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED";
+  body: string;
+  url: string;
+  createdAt: string;
+  author: Author;
+}
+
+interface CommitNode {
+  oid: string;
+  message: string;
+  url: string;
+  additions: number;
+  deletions: number;
+  changedFiles: number;
+  committedDate: string;
+  repository: Repository;
+  author: { user?: Author };
+}
+
 export class GitHubService {
   private graphqlWithAuth: typeof graphql;
 
@@ -62,7 +151,7 @@ export class GitHubService {
       }
     `;
 
-    const response: any = await this.graphqlWithAuth(query);
+    const response: { viewer: User } = await this.graphqlWithAuth(query);
     return response.viewer;
   }
 
@@ -122,7 +211,7 @@ export class GitHubService {
         until: options.until.toISOString(),
       },
       options.visibility,
-      (node: any) => ({
+      (node: IssueNode) => ({
         type: "Issue" as const,
         number: node.number,
         title: node.title,
@@ -130,7 +219,7 @@ export class GitHubService {
         url: node.url,
         state: node.state,
         createdAt: node.createdAt,
-        labels: node.labels.nodes.map((label: any) => ({
+        labels: node.labels.nodes.map((label: Label) => ({
           name: label.name,
           color: label.color,
         })),
@@ -204,10 +293,10 @@ export class GitHubService {
         until: options.until.toISOString(),
       },
       options.visibility,
-      (node: any) => {
+      (node: IssueNode) => {
         return node.comments.nodes
-          .filter((comment: any) => comment.author.login === username)
-          .map((comment: any) => ({
+          .filter((comment: CommentNode) => comment.author.login === username)
+          .map((comment: CommentNode) => ({
             type: "IssueComment" as const,
             body: comment.body,
             url: comment.url,
@@ -288,7 +377,7 @@ export class GitHubService {
         until: options.until.toISOString(),
       },
       options.visibility,
-      (node: any) => ({
+      (node: PullRequestNode) => ({
         type: "PullRequest" as const,
         number: node.number,
         title: node.title,
@@ -372,10 +461,10 @@ export class GitHubService {
         until: options.until.toISOString(),
       },
       options.visibility,
-      (node: any) => {
+      (node: PullRequestNode) => {
         return node.reviews.nodes
-          .filter((review: any) => review.author.login === username)
-          .map((review: any) => ({
+          .filter((review: ReviewNode) => review.author.login === username)
+          .map((review: ReviewNode) => ({
             type: "PullRequestReview" as const,
             state: review.state,
             body: review.body,
@@ -455,7 +544,7 @@ export class GitHubService {
         until: options.until.toISOString(),
       },
       options.visibility,
-      (node: any) => ({
+      (node: CommitNode) => ({
         type: "Commit" as const,
         sha: node.oid,
         message: node.message,
@@ -477,18 +566,18 @@ export class GitHubService {
     );
   }
 
-  private async fetchPaginatedData<T>(
+  private async fetchPaginatedData<T, N>(
     query: string,
-    variables: Record<string, any>,
+    variables: Record<string, unknown>,
     visibility: "public" | "private" | "all",
-    transformer: (node: any) => T | T[],
+    transformer: (node: N) => T | T[],
   ): Promise<T[]> {
     const results: T[] = [];
     let hasNextPage = true;
     let after: string | null = null;
 
     while (hasNextPage) {
-      const response: any = await this.graphqlWithAuth(query, {
+      const response: GraphQLSearchResponse<unknown> = await this.graphqlWithAuth(query, {
         ...variables,
         after,
       });
@@ -498,8 +587,11 @@ export class GitHubService {
       after = search.pageInfo.endCursor;
 
       for (const node of search.nodes) {
-        if (this.shouldIncludeByVisibility(node.repository?.visibility, visibility)) {
-          const transformed = transformer(node);
+        // eslint-disable-next-line no-type-assertion/no-type-assertion
+        const nodeWithRepo = node as { repository?: { visibility?: string } };
+        if (this.shouldIncludeByVisibility(nodeWithRepo.repository?.visibility || "", visibility)) {
+          // eslint-disable-next-line no-type-assertion/no-type-assertion
+          const transformed = transformer(node as N);
           if (Array.isArray(transformed)) {
             results.push(...transformed);
           } else {

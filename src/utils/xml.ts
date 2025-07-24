@@ -37,11 +37,12 @@ ${xmlElements.join("\n")}
     }
   }
 
-  private issueToXml(issue: any): string {
+  private issueToXml(issue: GitHubEventUnion): string {
+    if (issue.type !== "Issue") return "";
     const labels =
       issue.labels
         ?.map(
-          (label: any) =>
+          (label: { name: string; color: string }) =>
             `    <Label name="${this.escapeXml(label.name)}" color="${this.escapeXml(label.color)}" />`,
         )
         .join("\n") || "";
@@ -65,7 +66,8 @@ ${labels}
   </Issue>`;
   }
 
-  private issueCommentToXml(comment: any): string {
+  private issueCommentToXml(comment: GitHubEventUnion): string {
+    if (comment.type !== "IssueComment") return "";
     return `  <IssueComment createdAt="${comment.createdAt}">
     <Body>${this.escapeXml(comment.body || "")}</Body>
     <Url>${this.escapeXml(comment.url || "")}</Url>
@@ -86,7 +88,8 @@ ${labels}
   </IssueComment>`;
   }
 
-  private discussionToXml(discussion: any): string {
+  private discussionToXml(discussion: GitHubEventUnion): string {
+    if (discussion.type !== "Discussion") return "";
     return `  <Discussion createdAt="${discussion.createdAt}">
     <Title>${this.escapeXml(discussion.title || "")}</Title>
     <Body>${this.escapeXml(discussion.body || "")}</Body>
@@ -106,7 +109,8 @@ ${labels}
   </Discussion>`;
   }
 
-  private discussionCommentToXml(comment: any): string {
+  private discussionCommentToXml(comment: GitHubEventUnion): string {
+    if (comment.type !== "DiscussionComment") return "";
     return `  <DiscussionComment createdAt="${comment.createdAt}">
     <Body>${this.escapeXml(comment.body || "")}</Body>
     <Url>${this.escapeXml(comment.url || "")}</Url>
@@ -126,7 +130,8 @@ ${labels}
   </DiscussionComment>`;
   }
 
-  private pullRequestToXml(pr: any): string {
+  private pullRequestToXml(pr: GitHubEventUnion): string {
+    if (pr.type !== "PullRequest") return "";
     return `  <PullRequest createdAt="${pr.createdAt}" number="${pr.number}" state="${pr.state}">
     <Title>${this.escapeXml(pr.title || "")}</Title>
     <Body>${this.escapeXml(pr.body || "")}</Body>
@@ -148,7 +153,8 @@ ${labels}
   </PullRequest>`;
   }
 
-  private pullRequestReviewToXml(review: any): string {
+  private pullRequestReviewToXml(review: GitHubEventUnion): string {
+    if (review.type !== "PullRequestReview") return "";
     return `  <PullRequestReview createdAt="${review.createdAt}" state="${review.state}">
     <Body>${this.escapeXml(review.body || "")}</Body>
     <Url>${this.escapeXml(review.url || "")}</Url>
@@ -169,7 +175,8 @@ ${labels}
   </PullRequestReview>`;
   }
 
-  private commitToXml(commit: any): string {
+  private commitToXml(commit: GitHubEventUnion): string {
+    if (commit.type !== "Commit") return "";
     return `  <Commit createdAt="${commit.createdAt}" sha="${commit.sha}">
     <Message>${this.escapeXml(commit.message || "")}</Message>
     <Url>${this.escapeXml(commit.url || "")}</Url>
@@ -194,6 +201,6 @@ ${labels}
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;");
+      .replace(/'/g, "&apos;"); // cspell:disable-line
   }
 }
